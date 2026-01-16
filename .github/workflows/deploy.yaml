@@ -1,36 +1,102 @@
-name: Node.js CI/CD to Docker Hub
-
+name: Node.js CI/CD
+ 
 on:
-  push:
-    branches: [ "main" ]
 
+  push:
+
+    branches:
+
+      - main
+
+      - develop
+
+  pull_request:
+
+    branches:
+
+      - main
+
+      - develop
+ 
 jobs:
-  build-and-push:
+
+  build:
+
+    name: Build & Test Node.js
+
+    runs-on: ubuntu-latest
+ 
+    steps:
+
+      # Récupération du code
+
+      - name: Checkout repository
+
+        uses: actions/checkout@v4
+ 
+      # Installation de Node.js (Remplacement de Java)
+
+      - name: Set up Node.js
+
+        uses: actions/setup-node@v4
+
+        with:
+
+          node-version: '20' # Version LTS recommandée
+ 
+      # Installation des dépendances
+
+      - name: Install dependencies
+
+        run: npm install
+ 
+      - name: Run Tests
+
+        run: npm test --if-present
+ 
+      # Lancement des tests (si vous en avez configuré dans package.json)
+
+      - name: Run Tests
+
+        run: npm test --if-present
+ 
+  docker:
+
+    name: Build & Push Docker Image
+
     runs-on: ubuntu-latest
 
+    needs: build
+
+    # On ne pousse l'image que si c'est sur la branche main
+
+    if: github.ref == 'refs/heads/main'
+ 
     steps:
-    # 1. Récupération du code
-    - name: Checkout code
-      uses: actions/checkout@v4
 
-    # 2. Configuration de l'environnement Node (optionnel mais propre)
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+      - name: Checkout repository
 
-    # 3. Connexion à Docker Hub [cite: 120, 121]
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        uses: actions/checkout@v4
+ 
+      # Connexion au Docker Hub [cite: 41, 42]
 
-    # 4. Construction et Envoi de l'image [cite: 125, 128, 129]
-    - name: Build and Push Docker image
-      run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/node-app:latest .
-        docker push ${{ secrets.DOCKER_USERNAME }}/node-app:latest
+      - name: Login to Docker Hub
 
+        uses: docker/login-action@v3
 
+        with:
+
+          username: ${{ secrets.DOCKER_USERNAME }} # [cite: 44, 50]
+
+          password: ${{ secrets.DOCKER_PASSWORD }} # [cite: 45, 50]
+ 
+      # Construction et Push de l'image (Nom adapté pour nodejs)
+
+      - name: Build & Push Docker image
+
+        run: |
+
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/nodejs-app:latest .
+
+          docker push ${{ secrets.DOCKER_USERNAME }}/nodejs-app:latest
+ 

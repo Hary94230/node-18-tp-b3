@@ -1,0 +1,46 @@
+name: Node.js CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          
+      - name: Install dependencies
+        run: npm install
+        
+      # Optionnel : exécution des tests si présents
+      # - name: Run tests
+      #   run: npm test
+
+  docker:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Connexion à Docker Hub en utilisant les secrets GitHub [cite: 41, 50]
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          [cite_start]username: ${{ secrets.DOCKER_USERNAME }} [cite: 44, 50]
+          [cite_start]password: ${{ secrets.DOCKER_PASSWORD }} [cite: 45, 50]
+
+      # Construction et envoi de l'image [cite: 46, 48, 49]
+      - name: Build & Push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/node-api:latest . [cite: 48]
+          docker push ${{ secrets.DOCKER_USERNAME }}/node-api:latest [cite: 49]

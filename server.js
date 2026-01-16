@@ -69,7 +69,7 @@ router.route('/bears')
 		
 	})
 
-	// get all the bears (accessed at GET http://localhost:8080/api/bears)
+	// get all the bears (accessed at GET http://localhost:8080/api/bears) 
 	.get(function(req, res) {
 		Bear.find(function(err, bears) {
 			if (err)
